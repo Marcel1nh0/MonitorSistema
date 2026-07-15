@@ -1,16 +1,43 @@
-# This is a sample Python script.
+import time
+import psutil
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def get_top_processes(n=5, interval=1.0):
+    processos = list(psutil.process_iter(['pid', 'name']))
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+    for proc in processos:
+        try:
+            proc.cpu_percent(interval=None)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    time.sleep(interval)  
+
+    dados = []
+    for proc in processos:
+        try:
+            dados.append({
+                'pid': proc.info['pid'],
+                'name': proc.info['name'],
+                'cpu': proc.cpu_percent(interval=None)
+            })
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
+    dados.sort(key=lambda p: p['cpu'], reverse=True)
+    return dados[:n]
+
+
+# teste
+DURACAO_TESTE = 15  
+inicio = time.time()
+
+while time.time() - inicio < DURACAO_TESTE:
+    top5 = get_top_processes(n=5, interval=1.0)
+
+    print("\033[H\033[J", end="")  # Pode causar problemas com terminais próprios de IDE
+    print(f"Top 5 processos (rodando há {int(time.time() - inicio)}s):\n")
+    for p in top5:
+        print(f"PID {p['pid']:>6} | {p['name']:<25} | CPU: {p['cpu']:.1f}%")
+
+print("\nTeste finalizado.")
