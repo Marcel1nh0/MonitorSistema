@@ -35,7 +35,7 @@ inicio = time.time()
 while time.time() - inicio < DURACAO_TESTE:
     top5 = get_top_processes(n=5, interval=1.0)
 
-    print("\033[H\033[J", end="")  # Pode causar problemas com terminais próprios de IDE
+    print("\033[H\033[J", end="")  # Pode causar problemas com terminais próprios de IDE use o do sistema mesmo
     print(f"Top 5 processos (rodando há {int(time.time() - inicio)}s):\n")
     for p in top5:
         print(f"PID {p['pid']:>6} | {p['name']:<25} | CPU: {p['cpu']:.1f}%")
