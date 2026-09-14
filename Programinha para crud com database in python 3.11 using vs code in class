@@ -1,0 +1,152 @@
+import sqlite3
+def matar(cursor):
+    print("Matando!!!!!!! ou saindo nesse caso")
+    cursor.close()
+def excluir(cursor, conexao):
+    nome = input("Digite o nome do produto que vc quer alterar coisas")
+    cursor.execute("""SELECT * FROM produtos WHERE nome == VALUES(?)"""(nome))
+    dados = cursor.fetchall()
+    for i in dados:
+        print("Código: ", i.id)
+        print("Nome: ", i.nome)
+        print("Categoria: ", i.ategoria)
+        print("Preço: ", i.preco)
+        print("Quantidade: ", i.qtd)
+    if len (dados) > 1:
+        print("Há mais do que um produto com esse nome. Selecione o ID que quieres alterar")
+    ide = int(input("Coloque o id aqui: "))
+    for i in dados:
+        if i.id == ide: 
+            print("Achou!") 
+            print("Código: ", i.id) 
+            print("Nome: ", i.nome) 
+            print("Categoria: ", i.categoria) 
+            print("Preço: ", i.preco) 
+            print("Quantidade: ", i.qtd) 
+            
+            cursor.execute("DELETE FROM produtos WHERE id = ?", (ide,))
+    
+    conexao.commit()
+
+def alterar(cursor, conexao):
+    nome = input("Digite o nome do produto que vc quer alterar coisas")
+    cursor.execute("""SELECT * FROM produtos WHERE nome == VALUES(?)"""(nome))
+    dados = cursor.fetchall()
+    for i in dados:
+        print("Código: ", i.id)
+        print("Nome: ", i.nome)
+        print("Categoria: ", i.ategoria)
+        print("Preço: ", i.preco)
+        print("Quantidade: ", i.qtd)
+    if len (dados) > 1:
+        print("Há mais do que um produto com esse nome. Selecione o ID que quieres alterar")
+        ide = int(input("Coloque o id aqui: "))
+        for i in dados:
+            if i.id == ide: 
+                print("Achou!") 
+                print("Código: ", i.id) 
+                print("Nome: ", i.nome) 
+                print("Categoria: ", i.categoria) 
+                print("Preço: ", i.preco) 
+                print("Quantidade: ", i.qtd) 
+    
+                print("\nAltere os valores:")
+                nome = input("Coloque o novo nome: ")
+                categoria = input("Coloque a nova categoria: ")
+    
+   
+                while True:
+                    try:
+                        qtd = int(input("Coloque a nova quantidade: "))
+                        preco = float(input("Coloque o novo preço: "))
+                        break
+                    except ValueError:
+                        print("Erro: Apenas números inteiros para quantidade e decimais para preço. Tente novamente.")
+
+    
+                sql = "UPDATE produtos SET nome = ?, categoria = ?, preco = ?, qtd = ? WHERE id = ?"
+    
+                cursor.execute(sql, (nome, categoria, preco, qtd, ide))
+    
+    
+                conexao.commit()
+    
+
+def procurar(cursor):
+    nome = input("Coloque o nome do produto que quieres procurar")
+    cursor.execute("""SELECT * FROM produtos WHERE nome == VALUES(?)"""(nome))
+    dados = cursor.fetchone()
+    if len(dados) > 1:
+        print("tem mais do que um produto com esse nome")
+    print(dados.id,"\n" , dados.nome,"\n", dados.categoria, "\n",dados.preco,"\n", dados.qtd)
+def listar(cursor):
+    cursor.execute("""SELECT * FROM produtos""")
+    dados = cursor.fetchall()
+    if len(dados) == 0:
+        print("essa bosta tá vazia seu fudido")
+        return
+    for id, nome, categoria, preco, qtd in dados:
+        print("Código: ", id)
+        print("Nome: ", nome)
+        print("Categoria: ", categoria)
+        print("Preço: ", preco)
+        print("Quantidade: ", qtd)
+def cadastrar(cursor, conexao):
+   
+    while True:
+
+        try:
+            nome = input("Coloque o nome do produto")
+            qtd = int(input("Coloque a quantidade de produtos(int)"))
+            preco = float(input("Coloque o preco do produto(use \".\")"))
+            categoria = input("Coloque a categoria desse produto")
+            break
+
+        except ValueError:
+            print("Insira apenas números no campo preço e quantidade")
+    cursor.connect("""INSERT INTO produtos (nome, categoria, preco, qtd) VALUES(?,?,?,?)"""(nome,categoria,preco,qtd))
+    conexao.commit()
+def rodar(cursor, conexao):
+    print(("Selecione uma opção: "))
+    
+    while True:
+        try:
+            print("1- Cadastrar Produto\n2- Listar\n3- Procurar\n4- Alterar\n5- excluir\n 6- Matar a database")
+            opcao = int(input("Coloque a opcao"))
+            
+        except ValueError:
+            print("oh companheiro, facilita aí")
+            continue
+        match opcao:
+            case 1:
+                cadastrar(cursor,conexao)
+            case 2:
+                listar(cursor)
+            case 3:
+                procurar(cursor)
+            case 4:
+                alterar(cursor, conexao) 
+            case 5:
+                excluir(cursor, conexao)
+            case 6:
+                matar(cursor)
+                return 6
+                
+            case _:
+                print("fuck you")   
+        
+        
+    
+def criar():
+    
+    conexao = sqlite3.connect("Produtos.db")
+    cursor = conexao.cursor()
+    cursor.execute("""CREATE TABLE IF NOT EXISTS produtos (id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT NOT NULL, categoria TEXT NOT NULL, preco REAL NOT NULL, qtd INT); """)
+    return cursor, conexao
+if __name__ == "__main__":
+    
+    cursor, conexao = criar()
+    while True:
+        oi = rodar(cursor, conexao)
+        if oi == 6:
+            break
